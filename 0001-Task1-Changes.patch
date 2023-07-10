@@ -1,0 +1,167 @@
+From c6e3b9e8a6e3c2d1b0decffed6211db135364b06 Mon Sep 17 00:00:00 2001
+From: rajani60 <rajancdr@gmail.com>
+Date: Sun, 9 Jul 2023 00:09:01 -0700
+Subject: [PATCH] Task1 Changes
+
+---
+ Car.py         | 51 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ client3.py     | 16 ++++++++++------
+ client_test.py | 26 +++++++++++++++++++++++--
+ 3 files changed, 85 insertions(+), 8 deletions(-)
+ create mode 100644 Car.py
+
+diff --git a/Car.py b/Car.py
+new file mode 100644
+index 0000000..120faeb
+--- /dev/null
++++ b/Car.py
+@@ -0,0 +1,51 @@
++class Car:
++
++    def __init__(self, speed=0):
++        self.speed = speed
++        self.odometer = 0
++        self.time = 0
++
++    def say_state(self):
++        print(" I'm going {} kph!".format(self.speed))
++
++    def accelerate(self):
++        self.speed += 5
++
++    def brake(self):
++        if self.speed < 5:
++            self.speed = 0
++        else:
++            self.speed -+ 5
++
++    def step(self):
++        self.odometer += self.speed
++        self.time += 1
++
++    def average_speed(self):
++        if self.time != 0:
++            return self.odometer/self.time
++        else:
++            pass
++
++if __name__ == '__main__':
++
++    my_car = Car()
++    print(" I am a Car")
++    while True:
++        action = input("What should I do? [A]ccelerate, [B]rake, "
++                       "show [O]dometer, or show average [S]peed?").upper()
++        if action not in "ABOS" or len(action) != 1:
++            print("I don't know how to do that")
++            continue
++        if action == 'A':
++            my_car.accelerate()
++        elif action == 'B':
++            my_car.brake()
++        elif action == 'O':
++            print("The car has driven {} kilometers".format(my_car.odometer))
++        elif action == 'S':
++            print("The car's average speed was {} kph".format(my_car.average_speed()))
++        my_car.step()
++        my_car.say_state()
++                       
++
+diff --git a/client3.py b/client3.py
+index 3fc09b7..8766628 100644
+--- a/client3.py
++++ b/client3.py
+@@ -31,18 +31,20 @@ N = 500
+ 
+ def getDataPoint(quote):
+     """ Produce all the needed values to generate a datapoint """
+-    """ ------------- Update this function ------------- """
++    """ ------------- Updated this function ------------- """
+     stock = quote['stock']
+     bid_price = float(quote['top_bid']['price'])
+     ask_price = float(quote['top_ask']['price'])
+-    price = bid_price
++    price = (bid_price+ask_price)/2
+     return stock, bid_price, ask_price, price
+ 
+ 
+ def getRatio(price_a, price_b):
+     """ Get ratio of price_a and price_b """
+-    """ ------------- Update this function ------------- """
+-    return 1
++    """ ------------- Updated this function ------------- """
++    if price_b == 0:
++        return
++    return price_a/price_b
+ 
+ 
+ # Main
+@@ -51,9 +53,11 @@ if __name__ == "__main__":
+     for _ in iter(range(N)):
+         quotes = json.loads(urllib.request.urlopen(QUERY.format(random.random())).read())
+ 
+-        """ ----------- Update to get the ratio --------------- """
++        """ ----------- Updated to get the ratio --------------- """
++        prices = {}
+         for quote in quotes:
+             stock, bid_price, ask_price, price = getDataPoint(quote)
++            prices[stock] = price
+             print("Quoted %s at (bid:%s, ask:%s, price:%s)" % (stock, bid_price, ask_price, price))
+ 
+-        print("Ratio %s" % getRatio(price, price))
++        print("Ratio %s" % getRatio(prices['ABC'], prices['DEF']))
+diff --git a/client_test.py b/client_test.py
+index af2bf26..c24597f 100644
+--- a/client_test.py
++++ b/client_test.py
+@@ -1,5 +1,6 @@
+ import unittest
+-from client3 import getDataPoint
++from client3 import getDataPoint, getRatio
++
+ 
+ class ClientTest(unittest.TestCase):
+   def test_getDataPoint_calculatePrice(self):
+@@ -8,6 +9,15 @@ class ClientTest(unittest.TestCase):
+       {'top_ask': {'price': 121.68, 'size': 4}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 117.87, 'size': 81}, 'id': '0.109974697771', 'stock': 'DEF'}
+     ]
+     """ ------------ Add the assertion below ------------ """
++    # Call the method to get the data point
++    stock, bid_price, ask_price, price = getDataPoint(quotes[0])
++
++    # Calculate the expected price based on the quotes
++    expected_price = (quotes[0]['top_ask']['price'] + quotes[0]['top_bid']['price'])/2
++
++    # Add the assertion
++    self.assertEqual(price, expected_price)
++
+ 
+   def test_getDataPoint_calculatePriceBidGreaterThanAsk(self):
+     quotes = [
+@@ -15,10 +25,22 @@ class ClientTest(unittest.TestCase):
+       {'top_ask': {'price': 121.68, 'size': 4}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 117.87, 'size': 81}, 'id': '0.109974697771', 'stock': 'DEF'}
+     ]
+     """ ------------ Add the assertion below ------------ """
++    # Call the method to get the data point
++    stock, bid_price, ask_price, price = getDataPoint(quotes[0])
++
++    # Calculate the expected price based on the quotes
++    expected_price = (quotes[0]['top_ask']['price'] + quotes[0]['top_bid']['price']) / 2
++    self.assertGreater(bid_price, ask_price)
+ 
+ 
+-  """ ------------ Add more unit tests ------------ """
++  def test_getRatio(self):
++    # Test case with non-zero price_b
++    result = getRatio(10, 2)
++    self.assertEqual(result, 5)
+ 
++    # Test case with price_b equal to 0
++    result = getRatio(10, 0)
++    self.assertIsNone(result)
+ 
+ 
+ if __name__ == '__main__':
+-- 
+2.41.0.windows.2
+
